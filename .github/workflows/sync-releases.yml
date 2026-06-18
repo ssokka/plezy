@@ -1,0 +1,73 @@
+name: Sync Plezy Releases
+
+on:
+  schedule:
+    - cron: "0 15 * * *"  # 매일 KST 자정 (UTC 15:00) 실행
+  workflow_dispatch:       # 수동 실행 허용
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Upstream Latest Release Data
+        id: get_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = await github.rest.repos.getLatestRelease({
+              owner: 'edde746',
+              repo: 'plezy'
+            });
+            core.setOutput('tag_name', release.data.tag_name);
+            core.setOutput('body', release.data.body);
+
+      - name: Check If Release Already Exists
+        id: check_tag
+        run: |
+          TAG="${{ steps.get_release.outputs.tag_name }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download Upstream Assets
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          TAG="${{ steps.get_release.outputs.tag_name }}"
+          BASE_URL="https://github.com/edde746/plezy/releases/download/${TAG}"
+          
+          curl -L -o "plezy-android-arm64-v8a.tar.gz" "${BASE_URL}/plezy-android-arm64-v8a.tar.gz"
+          curl -L -o "plezy-android-armeabi-v7a.tar.gz" "${BASE_URL}/plezy-android-armeabi-v7a.tar.gz"
+          curl -L -o "plezy-windows-installer.exe" "${BASE_URL}/plezy-windows-installer.exe"
+
+      - name: Process Android APKs
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          # arm64-v8a 처리
+          mkdir -p extract_v8a
+          tar -xzf plezy-android-arm64-v8a.tar.gz -C extract_v8a
+          mv extract_v8a/plezy.apk plezy-android-v8a.apk
+          
+          # armeabi-v7a 처리
+          mkdir -p extract_v7a
+          tar -xzf plezy-android-armeabi-v7a.tar.gz -C extract_v7a
+          mv extract_v7a/plezy.apk plezy-android-v7a.apk
+
+      - name: Create Local GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_release.outputs.tag_name }}
+          name: ${{ steps.get_release.outputs.tag_name }}
+          body: ${{ steps.get_release.outputs.body }}
+          files: |
+            plezy-android-v8a.apk
+            plezy-android-v7a.apk
+            plezy-windows-installer.exe
