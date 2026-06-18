@@ -53,12 +53,12 @@ jobs:
           # arm64-v8a 처리
           mkdir -p extract_v8a
           tar -xzf plezy-android-arm64-v8a.tar.gz -C extract_v8a
-          mv extract_v8a/plezy.apk plezy-android-v8a.apk
+          find extract_v8a -name "plezy.apk" -exec mv {} plezy-android-v8a.apk \;
           
           # armeabi-v7a 처리
           mkdir -p extract_v7a
           tar -xzf plezy-android-armeabi-v7a.tar.gz -C extract_v7a
-          mv extract_v7a/plezy.apk plezy-android-v7a.apk
+          find extract_v7a -name "plezy.apk" -exec mv {} plezy-android-v7a.apk \;
 
       - name: Create Local GitHub Release
         if: steps.check_tag.outputs.exists == 'false'
