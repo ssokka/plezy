@@ -2,7 +2,7 @@ name: Sync Plezy Releases
 
 on:
   schedule:
-    - cron: "0 15 * * *"  # 매일 KST 자정 (UTC 15:00) 실행
+    - cron: "0 */3 * * *"  # KST 기준 0, 3, 6, 9, 12, 15, 18, 21시 정각마다 실행
   workflow_dispatch:       # 수동 실행 허용
 
 jobs:
