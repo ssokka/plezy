@@ -48,6 +48,7 @@ jobs:
           curl -L -o "plezy-android-arm64-v8a.tar.gz" "${BASE_URL}/plezy-android-arm64-v8a.tar.gz"
           curl -L -o "plezy-android-armeabi-v7a.tar.gz" "${BASE_URL}/plezy-android-armeabi-v7a.tar.gz"
           curl -L -o "plezy-windows-installer.exe" "${BASE_URL}/plezy-windows-installer.exe"
+          curl -L -o "plezy-windows-x64-portable.7z" "${BASE_URL}/plezy-windows-x64-portable.7z"
 
       - name: Process Android APKs
         if: steps.check_tag.outputs.exists == 'false'
@@ -73,3 +74,4 @@ jobs:
             plezy-android-v8a.apk
             plezy-android-v7a.apk
             plezy-windows-installer.exe
+            plezy-windows-x64-portable.7z
